@@ -82,7 +82,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     for (_, company) in companies.iter_mut() {
         println!("{}", company.name);
         for job in company.jobs.iter_mut() {
-            println!("  {}", job.title);
+            println!("- [{}]({})", job.title, job.url);
         }
     }
 
