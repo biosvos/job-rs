@@ -35,10 +35,13 @@ struct Job {
 struct Cli {
     #[clap(long, short, action)]
     refresh: bool,
+
+    #[clap(long, short, num_args(0..))]
+    excludes: Vec<String>,
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let args: Cli = Cli::parse();
+    let mut args: Cli = Cli::parse();
 
     if args.refresh {
         Programmers.source()?;
@@ -69,7 +72,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    dbg!(companies);
+    for (_, company) in companies.iter_mut() {
+        for filter in args.excludes.iter_mut() {
+            company.jobs.retain(|job| !job.title.contains(filter.as_str()));
+        }
+    }
+    companies.retain(|_, company| company.jobs.len() > 0);
+
+    for (_, company) in companies.iter_mut() {
+        println!("{}", company.name);
+        for job in company.jobs.iter_mut() {
+            println!("  {}", job.title);
+        }
+    }
 
     Ok(())
 }
