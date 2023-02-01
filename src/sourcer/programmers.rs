@@ -4,7 +4,7 @@ use crate::sourcer::sourcer::Sourcer;
 pub struct Programmers;
 
 impl Programmers {
-    fn http_request(&self, page: u64) -> Result<String, Box<dyn std::error::Error>> {
+    fn list_jobs(&self, page: u64) -> Result<String, Box<dyn std::error::Error>> {
         let url = "https://career.programmers.co.kr/api/job_positions";
         let params = [
             ("min_salary", "6000"),
@@ -13,6 +13,12 @@ impl Programmers {
             ("job_category_ids[]", "1")
         ];
         let url = reqwest::Url::parse_with_params(url, &params)?;
+        let body = reqwest::blocking::get(url)?.text()?;
+        Ok(body)
+    }
+
+    fn get_job(&self, job_id: u64) -> Result<String, Box<dyn std::error::Error>> {
+        let url = format!("https://career.programmers.co.kr/api/job_positions/{}", job_id);
         let body = reqwest::blocking::get(url)?.text()?;
         Ok(body)
     }
@@ -26,15 +32,27 @@ impl Programmers {
 
 impl Sourcer for Programmers {
     fn source(&self) -> Result<(), Box<dyn std::error::Error>> {
-        let body = self.http_request(1)?;
+        std::fs::create_dir_all("pages")?;
+        std::fs::create_dir_all("details")?;
+
+        let body = self.list_jobs(1)?;
         self.write_all(format!("{}.json", 1), &body)?;
 
         let value: serde_json::Value = serde_json::from_str(&body)?;
-        println!("{}", value["totalPages"]);
 
         for page in 2..=(value["totalPages"].as_u64().unwrap()) {
-            let body = self.http_request(page)?;
-            self.write_all(format!("{}.json", page), &body)?;
+            let body = self.list_jobs(page)?;
+            self.write_all(format!("pages/{}.json", page), &body)?;
+        }
+
+        for entry in glob::glob("*.json")? {
+            let body = std::fs::read_to_string(entry?.as_path())?;
+            let json: serde_json::Value = serde_json::from_str(&body)?;
+            for vec in json["jobPositions"].as_array().unwrap() {
+                let job_id = vec["id"].as_u64().unwrap();
+                let body = self.get_job(job_id)?;
+                self.write_all(format!("details/{}.json", job_id), &body)?;
+            }
         }
 
         Ok(())
