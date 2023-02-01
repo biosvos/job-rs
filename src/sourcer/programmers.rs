@@ -37,7 +37,7 @@ impl Sourcer for Programmers {
         std::fs::create_dir_all("details")?;
 
         let body = self.list_jobs(1)?;
-        self.write_all(format!("{}.json", 1), &body)?;
+        self.write_all(format!("pages/{}.json", 1), &body)?;
 
         let value: serde_json::Value = serde_json::from_str(&body)?;
 
@@ -46,7 +46,7 @@ impl Sourcer for Programmers {
             self.write_all(format!("pages/{}.json", page), &body)?;
         }
 
-        for entry in glob::glob("*.json")? {
+        for entry in glob::glob("pages/*.json")? {
             let body = std::fs::read_to_string(entry?.as_path())?;
             let json: serde_json::Value = serde_json::from_str(&body)?;
             for vec in json["jobPositions"].as_array().unwrap() {
