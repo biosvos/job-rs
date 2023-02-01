@@ -1,5 +1,6 @@
+use std::error::Error;
 use std::io::Write;
-use crate::sourcer::sourcer::Sourcer;
+use crate::sourcer::sourcer::{Company, Sourcer};
 
 pub struct Programmers;
 
@@ -56,5 +57,9 @@ impl Sourcer for Programmers {
         }
 
         Ok(())
+    }
+
+    fn Parse(&self) -> Result<Vec<Company>, Box<dyn Error>> {
+        todo!()
     }
 }
