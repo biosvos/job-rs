@@ -1,13 +1,13 @@
 #[derive(Debug)]
 pub struct Company {
-    id: u64,
-    name: String,
-    address: String,
-    jobs: Vec<Job>,
+    pub id: u64,
+    pub name: String,
+    pub address: String,
+    pub jobs: Vec<Job>,
 }
 
 impl Company {
-    fn add_job(&mut self, job: Job) -> Result<(), Box<dyn std::error::Error>> {
+    pub(crate) fn add_job(&mut self, job: Job) -> Result<(), Box<dyn std::error::Error>> {
         self.jobs.push(job);
         Ok(())
     }
@@ -15,12 +15,13 @@ impl Company {
 
 #[derive(Debug)]
 pub struct Job {
-    id: u64,
-    title: String,
-    url: String, // https://career.programmers.co.kr/job_positions/{id}
+    pub id: u64,
+    pub title: String,
+    pub url: String,
+    pub requirements: Vec<String>,
 }
 
 pub trait Sourcer {
     fn source(&self) -> Result<(), Box<dyn std::error::Error>>;
-    fn Parse(&self) -> Result<Vec<Company>, Box<dyn std::error::Error>>;
+    fn parse(&self) -> Result<Vec<Company>, Box<dyn std::error::Error>>;
 }

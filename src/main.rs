@@ -5,31 +5,7 @@ use sourcer::sourcer::Sourcer;
 
 extern crate glob;
 
-use glob::glob;
-use serde_json::Value;
 use clap::Parser;
-
-#[derive(Debug)]
-struct Company {
-    id: u64,
-    name: String,
-    address: String,
-    jobs: Vec<Job>,
-}
-
-impl Company {
-    fn add_job(&mut self, job: Job) -> Result<(), Box<dyn std::error::Error>> {
-        self.jobs.push(job);
-        Ok(())
-    }
-}
-
-#[derive(Debug)]
-struct Job {
-    id: u64,
-    title: String,
-    url: String, // https://career.programmers.co.kr/job_positions/{id}
-}
 
 #[derive(Parser, Debug)]
 struct Cli {
@@ -47,39 +23,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Programmers.source()?;
     }
 
-    let mut companies = std::collections::HashMap::new();
-    for entry in glob("*.json")? {
-        let body = std::fs::read_to_string(entry?.as_path())?;
-        let json: Value = serde_json::from_str(&body)?;
-        for vec in json["jobPositions"].as_array().unwrap() {
-            let key = vec["company"]["id"].as_u64().unwrap();
-            if !companies.contains_key(&key) {
-                companies.insert(key, Company {
-                    id: key,
-                    name: vec["company"]["name"].as_str().unwrap().into(),
-                    address: vec["company"]["address"].as_str().unwrap().into(),
-                    jobs: Vec::new(),
-                });
-            }
-            let url = format!("https://career.programmers.co.kr/job_positions/{}", vec["id"].as_u64().unwrap());
-            companies.entry(key).and_modify(|company| {
-                company.add_job(Job {
-                    id: vec["id"].as_u64().unwrap(),
-                    title: vec["title"].as_str().unwrap().into(),
-                    url,
-                }).unwrap();
-            });
-        }
-    }
+    let mut companies = Programmers.parse()?;
 
-    for (_, company) in companies.iter_mut() {
+    for company in &mut companies {
         for filter in args.excludes.iter_mut() {
             company.jobs.retain(|job| !job.title.contains(filter.as_str()));
         }
     }
-    companies.retain(|_, company| company.jobs.len() > 0);
+    companies.retain(|company| company.jobs.len() > 0);
 
-    for (_, company) in companies.iter_mut() {
+    for company in &mut companies {
         println!("{}", company.name);
         for job in company.jobs.iter_mut() {
             println!("- [{}]({})", job.title, job.url);
