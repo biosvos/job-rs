@@ -57,7 +57,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             writeln!(&mut writer, "- [{}]({})", job.title, job.url)?;
             counter += 1;
             for requirement in job.requirements.iter_mut() {
-                writeln!(&mut writer, "  - {}", requirement)?;
+                let re = regex::Regex::new("<.+?>")?;
+                let paragraph = re.replace_all(requirement, "");
+                let paragraph = paragraph.replace('\u{a0}', "");
+                let paragraph = paragraph.replace('\\', "");
+                if !paragraph.is_empty() {
+                    writeln!(&mut writer, "  - {}", paragraph)?;
+                }
             }
         }
     }
