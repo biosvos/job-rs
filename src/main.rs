@@ -1,4 +1,7 @@
 mod sourcer;
+mod printer;
+mod file_printer;
+mod console_printer;
 
 use std::fs::File;
 use std::io::Write;
@@ -6,6 +9,9 @@ use sourcer::programmers::Programmers;
 use sourcer::sourcer::Sourcer;
 
 use clap::Parser;
+use crate::console_printer::ConsolePrinter;
+use crate::file_printer::FilePrinter;
+use crate::printer::Printer;
 
 #[derive(Parser, Debug)]
 struct Cli {
@@ -16,7 +22,7 @@ struct Cli {
     excludes: Vec<String>,
 
     #[clap(long, short)]
-    output: String,
+    output: Option<String>,
 }
 
 fn contains(arr: &Vec<String>, target: &String) -> bool {
@@ -45,14 +51,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     companies.retain(|company| company.jobs.len() > 0);
 
-    let mut writer: File;
-    writer = File::create(args.output)?;
+    let mut printer: Box<dyn Printer> = if let Some(filename) = args.output {
+        FilePrinter::new(filename)?
+    } else {
+        ConsolePrinter::new()
+    };
 
     let mut counter = 0;
     for company in &mut companies {
-        writeln!(&mut writer, "\n# {}", company.name)?;
+        printer.println(format!("\n# {}", company.name))?;
         for job in company.jobs.iter_mut() {
-            writeln!(&mut writer, "- [{}]({})", job.title, job.url)?;
+            printer.println(format!("- [{}]({})", job.title, job.url))?;
             counter += 1;
             for requirement in job.requirements.iter_mut() {
                 let re = regex::Regex::new("<.+?>")?;
@@ -60,7 +69,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let paragraph = paragraph.replace('\u{a0}', "");
                 let paragraph = paragraph.replace('\\', "");
                 if !paragraph.is_empty() {
-                    writeln!(&mut writer, "  - {}", paragraph)?;
+                    printer.println(format!("  - {}", paragraph))?;
                 }
             }
         }
