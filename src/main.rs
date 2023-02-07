@@ -1,6 +1,7 @@
 mod sourcer;
 mod printer;
 mod file_printer;
+mod console_printer;
 
 use std::fs::File;
 use std::io::Write;
@@ -8,6 +9,7 @@ use sourcer::programmers::Programmers;
 use sourcer::sourcer::Sourcer;
 
 use clap::Parser;
+use crate::console_printer::ConsolePrinter;
 use crate::file_printer::FilePrinter;
 use crate::printer::Printer;
 
@@ -20,7 +22,7 @@ struct Cli {
     excludes: Vec<String>,
 
     #[clap(long, short)]
-    output: String,
+    output: Option<String>,
 }
 
 fn contains(arr: &Vec<String>, target: &String) -> bool {
@@ -49,7 +51,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     companies.retain(|company| company.jobs.len() > 0);
 
-    let mut printer = FilePrinter::new(args.output)?;
+    let mut printer: Box<dyn Printer> = if let Some(filename) = args.output {
+        FilePrinter::new(filename)?
+    } else {
+        ConsolePrinter::new()
+    };
 
     let mut counter = 0;
     for company in &mut companies {

@@ -14,10 +14,10 @@ impl Printer for FilePrinter {
 }
 
 impl FilePrinter {
-    pub fn new(filename: String) -> Result<FilePrinter, Box<dyn Error>> {
+    pub fn new(filename: String) -> Result<Box<dyn Printer>, Box<dyn Error>> {
         let ret = FilePrinter {
             writer: std::fs::File::create(filename)?,
         };
-        Ok(ret)
+        Ok(Box::new(ret))
     }
 }
