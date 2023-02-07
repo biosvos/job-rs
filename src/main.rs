@@ -1,6 +1,8 @@
 mod sourcer;
 mod printer;
+mod domain;
 
+use std::fmt::format;
 use std::fs::File;
 use std::io::Write;
 use sourcer::programmers::Programmers;
@@ -54,21 +56,25 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     let mut counter = 0;
+    // for company in &mut companies {
+    //     printer.println(format!("\n# {}", company.name))?;
+    //     for job in company.jobs.iter_mut() {
+    //         printer.println(format!("- [{}]({})", job.title, job.url))?;
+    //         counter += 1;
+    //         for requirement in job.requirements.iter_mut() {
+    //             let re = regex::Regex::new("<.+?>")?;
+    //             let paragraph = re.replace_all(requirement, "");
+    //             let paragraph = paragraph.replace('\u{a0}', "");
+    //             let paragraph = paragraph.replace('\\', "");
+    //             if !paragraph.is_empty() {
+    //                 printer.println(format!("  - {}", paragraph))?;
+    //             }
+    //         }
+    //     }
+    // }
     for company in &mut companies {
-        printer.println(format!("\n# {}", company.name))?;
-        for job in company.jobs.iter_mut() {
-            printer.println(format!("- [{}]({})", job.title, job.url))?;
-            counter += 1;
-            for requirement in job.requirements.iter_mut() {
-                let re = regex::Regex::new("<.+?>")?;
-                let paragraph = re.replace_all(requirement, "");
-                let paragraph = paragraph.replace('\u{a0}', "");
-                let paragraph = paragraph.replace('\\', "");
-                if !paragraph.is_empty() {
-                    printer.println(format!("  - {}", paragraph))?;
-                }
-            }
-        }
+        printer.println(format!("{}", company))?;
+        counter += company.jobs.len()
     }
 
     eprintln!("{}", counter);

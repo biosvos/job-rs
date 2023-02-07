@@ -1,6 +1,8 @@
 use std::error::Error;
 use std::io::Write;
-use crate::sourcer::sourcer::{Company, Job, Sourcer};
+use crate::domain::company::Company;
+use crate::domain::job::Job;
+use crate::sourcer::sourcer::Sourcer;
 
 pub struct Programmers;
 
@@ -89,7 +91,7 @@ impl Sourcer for Programmers {
                         title,
                         url,
                         requirements,
-                    }).unwrap();
+                    });
                 });
             }
         }
