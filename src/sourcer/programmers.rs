@@ -34,7 +34,7 @@ impl Programmers {
 }
 
 impl Sourcer for Programmers {
-    fn source(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn fetch(&self) -> Result<(), Box<dyn std::error::Error>> {
         std::fs::create_dir_all("pages")?;
         std::fs::create_dir_all("details")?;
 
@@ -61,7 +61,7 @@ impl Sourcer for Programmers {
         Ok(())
     }
 
-    fn parse(&self) -> Result<Vec<Company>, Box<dyn Error>> {
+    fn load(&self) -> Result<Vec<Company>, Box<dyn Error>> {
         let mut companies = std::collections::HashMap::new();
         for entry in glob::glob("pages/*.json")? {
             let body = std::fs::read_to_string(entry?.as_path())?;

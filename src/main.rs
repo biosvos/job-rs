@@ -2,9 +2,6 @@ mod sourcer;
 mod printer;
 mod domain;
 
-use std::fmt::format;
-use std::fs::File;
-use std::io::Write;
 use sourcer::programmers::Programmers;
 use sourcer::sourcer::Sourcer;
 
@@ -36,10 +33,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut args: Cli = Cli::parse();
 
     if args.refresh {
-        Programmers.source()?;
+        Programmers.fetch()?;
     }
 
-    let mut companies = Programmers.parse()?;
+    let mut companies = Programmers.load()?;
 
     for company in &mut companies {
         for filter in args.excludes.iter_mut() {
