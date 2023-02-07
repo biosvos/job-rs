@@ -82,7 +82,13 @@ impl Sourcer for Programmers {
                 let detail = std::fs::read_to_string(format!("details/{}.json", job_id))?;
                 let detail_json: serde_json::Value = serde_json::from_str(&detail)?;
                 let requirement: String = detail_json["jobPosition"]["requirement"].as_str().unwrap_or("").into();
-                let requirements = requirement.split("\r\n").map(str::to_string).collect();
+                let requirements = requirement.split("\r\n").map(|s| {
+                    let re = regex::Regex::new("<.+?>").unwrap();
+                    let paragraph = re.replace_all(s, "");
+                    let paragraph = paragraph.replace('\u{a0}', " ");
+                    let paragraph = paragraph.replace('\\', "");
+                    paragraph
+                }).filter(|s| !s.is_empty()).collect();
 
                 let url = format!("https://career.programmers.co.kr/job_positions/{}", job_id);
                 companies.entry(key).and_modify(|company| {
