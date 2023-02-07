@@ -88,7 +88,10 @@ impl Sourcer for Programmers {
                     let paragraph = paragraph.replace('\u{a0}', " ");
                     let paragraph = paragraph.replace('\\', "");
                     paragraph
-                }).filter(|s| !s.is_empty()).collect();
+                }).filter(|s| !s.is_empty()).filter(|s| {
+                    let re = regex::Regex::new(".*[ㄱ-ㅎ|ㅏ-ㅣ|가-힣|a-z|A-Z]+.*").unwrap();
+                    re.is_match(&s)
+                }).collect();
 
                 let url = format!("https://career.programmers.co.kr/job_positions/{}", job_id);
                 companies.entry(key).and_modify(|company| {
