@@ -5,8 +5,6 @@ use std::io::Write;
 use sourcer::programmers::Programmers;
 use sourcer::sourcer::Sourcer;
 
-extern crate glob;
-
 use clap::Parser;
 
 #[derive(Parser, Debug)]
@@ -69,6 +67,5 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     eprintln!("{}", counter);
-
     Ok(())
 }
