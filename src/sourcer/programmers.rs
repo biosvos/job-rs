@@ -89,7 +89,7 @@ impl Sourcer for Programmers {
                     let paragraph = paragraph.replace('\\', "");
                     paragraph
                 }).filter(|s| !s.is_empty()).filter(|s| {
-                    let re = regex::Regex::new(".*[ㄱ-ㅎ|ㅏ-ㅣ|가-힣|a-z|A-Z]+.*").unwrap();
+                    let re = regex::Regex::new(".*[가-힣|a-z|A-Z]+.*").unwrap();
                     re.is_match(&s)
                 }).collect();
 
