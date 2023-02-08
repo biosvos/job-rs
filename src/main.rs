@@ -1,6 +1,7 @@
 mod sourcer;
 mod printer;
 mod domain;
+mod tag;
 
 use sourcer::programmers::Programmers;
 use sourcer::sourcer::Sourcer;

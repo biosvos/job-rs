@@ -1,8 +1,10 @@
+use std::collections::HashSet;
 use std::error::Error;
 use std::io::Write;
 use crate::domain::company::Company;
 use crate::domain::job::Job;
 use crate::sourcer::sourcer::Sourcer;
+use crate::tag;
 
 pub struct Programmers;
 
@@ -62,6 +64,8 @@ impl Sourcer for Programmers {
     }
 
     fn load(&self) -> Result<Vec<Company>, Box<dyn Error>> {
+        let mut tags = tag::Tags::new();
+        tags.load("tagging")?;
         let mut companies = std::collections::HashMap::new();
         for entry in glob::glob("pages/*.json")? {
             let body = std::fs::read_to_string(entry?.as_path())?;
@@ -77,12 +81,12 @@ impl Sourcer for Programmers {
                     });
                 }
                 let job_id = vec["id"].as_u64().unwrap();
-                let title = vec["title"].as_str().unwrap().into();
+                let title = vec["title"].as_str().unwrap().to_string();
 
                 let detail = std::fs::read_to_string(format!("details/{}.json", job_id))?;
                 let detail_json: serde_json::Value = serde_json::from_str(&detail)?;
                 let requirement: String = detail_json["jobPosition"]["requirement"].as_str().unwrap_or("").into();
-                let requirements = requirement.split("\r\n").map(|s| {
+                let requirements: Vec<String> = requirement.split("\r\n").map(|s| {
                     let re = regex::Regex::new("<.+?>").unwrap();
                     let paragraph = re.replace_all(s, "");
                     let paragraph = paragraph.replace('\u{a0}', " ");
@@ -93,6 +97,15 @@ impl Sourcer for Programmers {
                     re.is_match(&s)
                 }).collect();
 
+                let mut tag_result = tags.get_tags(&title).unwrap_or_default();
+                for requirement in requirements.iter() {
+                    if let Some(mut sub) = tags.get_tags(requirement) {
+                        tag_result.append(&mut sub);
+                    }
+                }
+
+                let tag_result = tag_result.into_iter().collect::<HashSet<_>>().into_iter().collect();
+
                 let url = format!("https://career.programmers.co.kr/job_positions/{}", job_id);
                 companies.entry(key).and_modify(|company| {
                     company.add_job(Job {
@@ -100,6 +113,7 @@ impl Sourcer for Programmers {
                         title,
                         url,
                         requirements,
+                        tags: tag_result,
                     });
                 });
             }
