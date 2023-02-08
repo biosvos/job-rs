@@ -16,3 +16,18 @@ impl std::fmt::Display for Job {
         Ok(())
     }
 }
+
+impl Job {
+    pub fn contain<S: AsRef<str>>(&self, like: S) -> bool {
+        let like = like.as_ref();
+        if self.title.contains(like) {
+            return true;
+        }
+        for requirement in &self.requirements {
+            if requirement.contains(like) {
+                return true;
+            }
+        }
+        return false;
+    }
+}
