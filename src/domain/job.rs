@@ -18,8 +18,7 @@ impl std::fmt::Display for Job {
 }
 
 impl Job {
-    pub fn contain<S: AsRef<str>>(&self, like: S) -> bool {
-        let like = like.as_ref();
+    pub fn contain(&self, like: &str) -> bool {
         if self.title.contains(like) {
             return true;
         }
